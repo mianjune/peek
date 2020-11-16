@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Python Lib
+mkdir -p python &&\
+pip3 freeze >| python/python3-requirements.txt
+
