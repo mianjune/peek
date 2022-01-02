@@ -1,6 +1,6 @@
 #!/bin/sh
 
-bin_dir=$(dirname "$0")
+bin_dir=$(cd $(dirname "$0"); pwd -P)
 base_dir=$bin_dir/..
 
 cd $base_dir
@@ -23,7 +23,7 @@ Commands:
 _schedule() {
     echo -e "\e[33m[`date '+%F %T'`] \e[32mschedule\e[0m"
     # refresh backup data
-    for f in $(ls ./bin/update_*.sh); do
+    for f in $bin_dir/update_*.sh; do
         echo -e "\e[33m[`date '+%F %T'`] \e[0mexecute \e[32m$f ...\e[0m"
         $f
     done
@@ -62,7 +62,7 @@ _enable() { # arg1: script_path
         fi
 
         _exec git commit -m "[enable] ${f2:-$f}"
-        shift
+        shift; unset f2
     done
 } 
 
