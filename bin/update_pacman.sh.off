@@ -1,5 +1,5 @@
 #!/bin/sh
 
 # Arch Pacman
-pacman -Q >| pacman.txt
+pacman -Qet >| pacman.txt
 

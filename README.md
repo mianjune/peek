@@ -1,5 +1,5 @@
 # Backup
-This is a Git version for my configure and setting files.
+This is a repository template for my configure and setting files by Git.
 
 
 ## Get Start
@@ -7,18 +7,19 @@ This is a Git version for my configure and setting files.
 git clone git@github.com:mianjune/backup.git
 cd backup
 
-# new branch
-git checkout -b your_name
+# Optional: new branch
+# git checkout -b new_branch_for_backup_set
 
-# modify or add updater you need below bin/, script like `update_*.sh` (trun script off by rename append `.old`)
+# modify or add updating scripts you need below bin/ (`update_*.sh`, disable by rename appending `.old`)
+# execute updating scripts
+ls ./bin/update_*.sh|xargs -l1 sh {}
+# and track files into repository
+git add -f bin/update_*.sh ...files_for_backup
 
-# initiate backup files and add to Git forcely
-./tools/backup_schedule.sh
-git add -f ...
 # re amend commit
-./tools/backup_schedule.sh
+./bin/backup_schedule.sh
 
 # update crontab, like:
-# 3 10-23,0 * * * /path_to/backup/bin/schedule.sh &> /tmp/cron-`whoami`-backup-schedule.log &
+# 3 10-23,0 * * * /path_to/backup/bin/backup.sh schedule &> /tmp/cron-`whoami`-backup-schedule.log &
 ```
 

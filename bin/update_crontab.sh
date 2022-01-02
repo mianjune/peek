@@ -1,5 +1,5 @@
 #!/bin/sh
 
-mkdir -p crontab &&\
+mkdir -p crontab && \
 crontab -l >| crontab/${USER}.crontab
 
