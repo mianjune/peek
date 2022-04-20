@@ -1,30 +1,32 @@
 #!/bin/sh
 
-bin_dir=$(cd $(dirname "$0"); pwd -P)
-base_dir=$bin_dir/..
+base_dir=$(cd $(dirname $(readlink "$0"))/..; pwd -P)
+bin_dir=$base_dir/.bin/update.d
 
 cd $base_dir
 
 
-_exec() { echo -e "> \e[1;32m$*\e[0m"; "$@"; }
+_exec() { printf "> \e[1;37m$*\e[0m\n"; "$@"; }
+_log() { printf "\e[1;33m[`date '+%F %T'`] \e[32m$*\e[0m\n"; }
 
-_usage() { echo -e "\e[32m$0\e[0m version: v1.0 by Mianjune
+_usage() { printf %b "\e[32m$0\e[0m version: v1.0 by Mianjune
 A backup manager
 
 Usage: \e[32m$0 SUB_COMMAND\e[0m
 
 Commands:
-    \e[32mschedule\e[0m          update backup data and commit to repository
-    \e[32menable  SCRIPT\e[0m    enable the udpating script
-    \e[32mdisable SCRIPT\e[0m    disable the udpating script
+    \e[1;32mschedule\e[0m          update backup data and commit to repository
+    \e[1;32menable  SCRIPT\e[0m    enable the udpating script
+    \e[1;32mdisable SCRIPT\e[0m    disable the udpating script
+
 "; }
 
 
 _schedule() {
-    echo -e "\e[33m[`date '+%F %T'`] \e[32mschedule\e[0m"
+    _log schedule
     # refresh backup data
-    for f in $bin_dir/update_*.sh; do
-        echo -e "\e[33m[`date '+%F %T'`] \e[0mexecute \e[32m$f ...\e[0m"
+    for f in $bin_dir/*.sh; do
+        _log "execute \e[32m$f \e[37m..."
         $f
     done
 
@@ -40,15 +42,15 @@ _schedule() {
 
         msg="[schedule] ${today}: backup ${USER}@$(hostname 2>/dev/null||hostnamectl hostname)"
 
-        echo -e "\e[33m[`date '+%F %T'`] \e[32mcommit \e[1m$msg\e[0m"
+        _log "commit \e[32m$msg"
         git commit ${commit_options} -am "$msg"
     }
 } 
 
 
 _enable() { # arg1: script_path
-    echo -e "\e[33m[`date '+%F %T'`] \e[32menable \e[1m$*\e[0m"
-    [ $# -gt 0 ] || { echo -e "\e[31ma script required!!\e[0m"; return 1; }
+    _log "enable \e[4;32m$*\e[0m"
+    [ $# -gt 0 ] || { _log "\e[31ma script required!!"; return 1; }
     while [ $# -gt 0 ]; do
         local f=$(basename $1)
 
@@ -56,7 +58,7 @@ _enable() { # arg1: script_path
         _exec git add -f "$bin_dir/$f"
         if [[ "$f" != *.sh ]]; then
             f2="${f%.*}"
-            [[ "$f2" != *.sh ]] && { echo -e "\e[31mwrong script name!!\e[0m"; return 1; }
+            [[ "$f2" != *.sh ]] && { _log "\e[31mwrong script name!!"; return 1; }
 
             _exec git mv "$bin_dir/$f" "$bin_dir/$f2"
         fi
@@ -67,8 +69,8 @@ _enable() { # arg1: script_path
 } 
 
 _disable() { # arg1: script_path
-    echo -e "\e[33m[`date '+%F %T'`] \e[32mdisable \e[1m$*\e[0m"
-    [ $# -gt 0 ] || { echo -e "\e[31ma script required!!\e[0m"; return 1; }
+    _log "disable \e[4;32m$*\e[0m"
+    [ $# -gt 0 ] || { _log "\e[31ma script required!!"; return 1; }
     while [ $# -gt 0 ]; do
         local f=$(basename $1)
         [[ "$f" == *.sh ]] && {

@@ -12,7 +12,7 @@ b=$(hostname 2>/dev/null||hostnamectl hostname)
 git worktree -b "${b}" "backup-${b}"
 cd $_
 
-# modify or add updating scripts you need below .bin/ (`update_*.sh`, disable by rename appending `.old`)
+# modify or add updating scripts you need below .bin/ (`update_*.sh`, disable by rename appending `.off`)
 # execute updating scripts
 ls ./.bin/update_*.sh|xargs -l1 sh {}
 # and track files into repository
