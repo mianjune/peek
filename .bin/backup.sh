@@ -23,28 +23,21 @@ Commands:
 
 
 _schedule() {
-    _log schedule
-    # refresh backup data
-    for f in $bin_dir/*.sh; do
-        _log "execute \e[32m$f \e[37m..."
-        $f
-    done
+  _log schedule
+  # refresh backup data
+  for f in $bin_dir/*.sh; do
+    _log "execute \e[32m$f \e[37m..."
+    $f
 
 
     # commit updates
     [ -n "$(git status -uno -s)" ] && {
-        # keep commits group by one day
-        today=$(date +%Y%m%d)
-        
-        [[ $(git show -s --pretty=format:%as|tr -d -- -) == $today && $(git show -s --pretty=%s) == "[schedule]"* ]] && \
-            commit_options='--amend'
+      msg="[schedule] $(basename "${f%.sh}"): by ${USER}@$(cat /etc/hostname)"
 
-
-        msg="[schedule] ${today}: backup ${USER}@$(hostname 2>/dev/null||hostnamectl hostname)"
-
-        _log "commit \e[32m$msg"
-        git commit ${commit_options} -am "$msg"
+      _log "commit \e[32m$msg"
+      git commit -am "$msg"
     }
+  done
 } 
 
 
@@ -63,7 +56,7 @@ _enable() { # arg1: script_path
             _exec git mv "$bin_dir/$f" "$bin_dir/$f2"
         fi
 
-        _exec git commit -m "[enable] ${f2:-$f}"
+        _exec git commit -m "[manage] enable ${f2:-$f}"
         shift; unset f2
     done
 } 
@@ -76,7 +69,7 @@ _disable() { # arg1: script_path
         [[ "$f" == *.sh ]] && {
             _exec git add -f "$bin_dir/$f"
             _exec git mv "$_" "$bin_dir/$f.off"
-            _exec git commit -m "[disable] $f"
+            _exec git commit -m "[manage] enable $f"
         }
         shift
     done
