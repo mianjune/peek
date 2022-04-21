@@ -29,23 +29,44 @@ _list() {
 }
 
 
-_schedule() { # args: name
-  _log schedule
-  # refresh backup data
-  for f in $bin_dir/*.sh; do
-    _log "execute \e[32m$f \e[37m..."
-    $f
+_updates() { # args: [name]
+  _log schedule updating
+  if [ $# -gt 0 ]; then
+    for f in "$@"; do
+      [[ "$f" == *.sh ]] || f="$f.sh"
+      f="$bin_dir/$f"
+      if [ ! -f "$f" ]; then
+        f="$f.off"
+        if [ ! -f "$f" ]; then
+          _log "Not found: ${f%.off}"
+          return
+        fi
+      fi
 
-
-    # commit updates
-    [ -n "$(git status -uno -s)" ] && {
-      msg="[schedule] $(basename "${f%.sh}"): by ${USER}@$(cat /etc/hostname)"
-
-      _log "commit \e[32m$msg"
-      git commit -am "$msg"
-    }
-  done
+      _update "$f"
+    done
+  else
+    for f in $bin_dir/*.sh; do
+      _update "$f"
+    done
+  fi
 } 
+
+_update() {
+  f="$1"
+  _log "execute \e[32m$f \e[37m..."
+  # refresh backup data
+  $f
+
+  # commit updates
+  [ -n "$(git status -uno -s)" ] && {
+    : "${f%.off}"
+    msg="[schedule] $(basename "${_%.sh}"): by ${USER}@$(cat /etc/hostname)"
+
+    _log "commit \e[32m$msg"
+    git commit -am "$msg"
+  }
+}
 
 
 _enable() { # arg1: script_path
@@ -85,7 +106,7 @@ _disable() { # arg1: script_path
 
 case $1 in
   ls|list)	_list;;
-  schedule)	_schedule;;
+  update)	_updates "${@:2}";;
   enable)	_enable "${@:2}";;
   disable)	_disable "${@:2}";;
   *)		_usage; exit 1;
