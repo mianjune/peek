@@ -6,8 +6,9 @@ bin_dir=$base_dir/.bin/update.d
 cd $base_dir
 
 
-_exec() { printf "> \e[1;37m$*\e[0m\n"; "$@"; }
-_log() { printf "\e[1;33m[`date '+%F %T'`] \e[32m$*\e[0m\n"; }
+_log() { printf "\e[1;33m[`date '+%F %T'`] \e[37m$*\e[0m\n"; }
+_exec() { _log "> \e[32m$*\e[0m\n"; "$@"; }
+export -f _log # sub process
 
 _usage() { printf %b "\e[1;32m$0\e[0m version: v1.0 by Mianjune
 A backup manager

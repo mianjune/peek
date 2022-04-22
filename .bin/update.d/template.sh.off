@@ -1,0 +1,19 @@
+#!/bin/sh
+# This is a demo updater script
+
+# manage by directory, and make sure existed
+_data_dir="$(basename "${0%.sh*}")"
+mkdir -p "$_data_dir"
+
+# Predefined function:
+#   logging with format
+#   > _log MESSAGE...
+#   execute command with logging
+#   > _exec COMMAND...
+      
+# TODO: update to >| "$_data_dir"
+
+
+# trace to Git repository
+git add -f "$_data_dir"
+

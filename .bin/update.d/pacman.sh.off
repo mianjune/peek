@@ -3,3 +3,5 @@
 # Arch Pacman
 pacman -Qet >| pacman.txt
 
+git add -f pacman.txt
+

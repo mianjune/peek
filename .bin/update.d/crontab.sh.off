@@ -1,5 +1,10 @@
 #!/bin/sh
+# Crontable schedules
 
-mkdir -p crontab && \
-crontab -l >| crontab/${USER}.crontab
+_data_dir=crontab
+mkdir -p "$_data_dir"
+
+crontab -l >| "$_data_dir/${USER}.crontab"
+
+git add -f "$_data_dir"
 
