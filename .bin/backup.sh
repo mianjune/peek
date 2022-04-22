@@ -25,8 +25,15 @@ Commands:
 
 
 _list() {
-  _e=$'\e['
-  ls $bin_dir|grep .sh|sed -r "s/^(.+)\.off/${_e}1;36m# \1/;tr;s/^/${_e}1;32m  /;:r;s \.sh  ;s \$ ${_e}0m "
+  _l=$(ls "$bin_dir")
+  _lm=$(($(<<<"$_l" sed 's .off$  '|wc -L)+3))
+  while read f; do
+    printf "\e[1;$(
+      printf "%-${_lm}s" "$(<<<"$f" sed -r "s/^(.+)\.sh\.off/36m# \1/;t;s/^/32m  /;s \.sh  ")"
+      desc=$(sed -r '/^#!/D;/^#/{:f;n;/^#/!Q;bf};d' "$bin_dir/$f"|sed -r 's ^#\s*  '|tr '\n' \ )
+      [ -n "$desc" ] && printf "\e[37m- $desc"
+    )\n"
+  done <<<"$_l"
 }
 
 
