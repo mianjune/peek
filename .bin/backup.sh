@@ -16,13 +16,24 @@ A backup manager
 Usage: \e[1;32m$0 SUB_COMMAND\e[0m
 
 Commands:
+    \e[1;32mnew     SCRIPT\e[0m	new updater
     \e[1;32mlist\e[0m		list all updating scripts
-    \e[1;32mschedule\e[0m		update backup data and commit to repository
+    \e[1;32mupdate\e[0m		update backup data and commit to repository
     \e[1;32menable  SCRIPT\e[0m	enable the updating script
     \e[1;32mdisable SCRIPT\e[0m	the updating script
 
 "; }
 
+
+_new() {
+  _log "create \e[4;32m$*\e[0m"
+  f=$1
+  [ -n "$f" ] || { _log "\e[31ma task name required!!"; return 1; }
+  f="$bin_dir/$f.sh"
+  cp -in "$bin_dir/template.sh.off" "$f" && "${EDITOR:-vim}" "$f"
+  _enable "$f"
+  printf "\e[1mfor execute it by: \e[32m./backup.sh update $(basename "${f%.sh}")"
+}
 
 _list() {
   _l=$(ls "$bin_dir")
@@ -35,7 +46,6 @@ _list() {
     )\n"
   done <<<"$_l"
 }
-
 
 _updates() { # args: [name]
   _log schedule updating
@@ -76,7 +86,6 @@ _update() {
   }
 }
 
-
 _enable() { # arg1: script_path
     _log "enable \e[4;32m$*\e[0m"
     [ $# -gt 0 ] || { _log "\e[31ma script required!!"; return 1; }
@@ -114,6 +123,7 @@ _disable() { # arg1: script_path
 
 case $1 in
   ls|list)	_list;;
+  add|new)	_new "${@:2}";;
   update)	_updates "${@:2}";;
   enable)	_enable "${@:2}";;
   disable)	_disable "${@:2}";;
