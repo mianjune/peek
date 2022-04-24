@@ -69,7 +69,7 @@ _update() {
   # commit updates
   [ -n "$(git status -uno -s)" ] && {
     : "${f%.off}"
-    msg="[schedule] $(basename "${_%.sh}"): by ${USER}@$(cat /etc/hostname)"
+    msg="[schedule.$(date '+%Y%m%d')] $(basename "${_%.sh}"): by ${USER}@$(cat /etc/hostname)"
 
     _log "commit \e[32m$msg"
     git commit -am "$msg"
