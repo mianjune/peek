@@ -18,6 +18,7 @@ Usage: \e[1;32m$0 SUB_COMMAND\e[0m
 Commands:
     \e[1;32mnew		TASK\e[0m	new task
     \e[1;32mlist	\e[0m	list all tasks
+    \e[1;32medit	TASK\e[0m	edit the task script
     \e[1;32mexec|run	[TASK]\e[0m	refresh data and commit to repository by task
     \e[1;32menable	TASK\e[0m	enable the task
     \e[1;32mdisable	TASK\e[0m	disable the task
@@ -35,6 +36,15 @@ _new() {
   cp -in "$bin_dir/template.sh.off" "$f" && "${EDITOR:-vim}" "$f"
   _enable "${f%.sh}"
   printf "\e[1mfor execute it by: \e[32m./backup.sh update $(basename "$_")\n"
+}
+
+_edit() {
+  f=$1
+  [ -n "$f" ] || { _log "\e[31ma task name required!!"; return 1; }
+  f=$(_get_script "$f")
+  [ -n "$f" ] || { _log "\e[31mtask not found!!"; return 1; }
+  _log "edit \e[4;32m$f\e[0m"
+  "${EDITOR:-vim}" "$f"
 }
 
 _list() {
@@ -132,6 +142,7 @@ case $1 in
   ls|list)	_list;;
   add|new)	_new "${@:2}";;
   exec|run)	_updates "${@:2}";;
+  edit)		_edit "${@:2}";;
   enable)	_enable "${@:2}";;
   disable)	_disable "${@:2}";;
   *)		_usage; exit 1;
