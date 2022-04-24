@@ -16,11 +16,11 @@ A backup manager
 Usage: \e[1;32m$0 SUB_COMMAND\e[0m
 
 Commands:
-    \e[1;32mnew     SCRIPT\e[0m	new updater
-    \e[1;32mlist\e[0m		list all updating scripts
-    \e[1;32mupdate\e[0m		update backup data and commit to repository
-    \e[1;32menable  SCRIPT\e[0m	enable the updating script
-    \e[1;32mdisable SCRIPT\e[0m	the updating script
+    \e[1;32mnew		TASK\e[0m	new task
+    \e[1;32mlist	\e[0m	list all tasks
+    \e[1;32mexec|run	[TASK]\e[0m	refresh data and commit to repository by task
+    \e[1;32menable	TASK\e[0m	enable the task
+    \e[1;32mdisable	TASK\e[0m	disable the task
 
 "; }
 
@@ -29,10 +29,12 @@ _new() {
   _log "create \e[4;32m$*\e[0m"
   f=$1
   [ -n "$f" ] || { _log "\e[31ma task name required!!"; return 1; }
+  f=$(_get_script "$f")
+  [ -z "$f" ] || { _log "\e[31mtask existed: \e[4;32m$f"; return 1; }
   f="$bin_dir/$f.sh"
   cp -in "$bin_dir/template.sh.off" "$f" && "${EDITOR:-vim}" "$f"
-  _enable "$f"
-  printf "\e[1mfor execute it by: \e[32m./backup.sh update $(basename "${f%.sh}")"
+  _enable "${f%.sh}"
+  printf "\e[1mfor execute it by: \e[32m./backup.sh update $(basename "$_")\n"
 }
 
 _list() {
@@ -47,19 +49,22 @@ _list() {
   done <<<"$_l"
 }
 
+_get_script() {
+  f="$(basename $1)"
+  f=$bin_dir/${f%%.*}.sh
+  [ -f "$f" ] || {
+    f=$f.off
+    [ -f "$f" ] || unset f
+  }
+  printf "$f"
+}
+
 _updates() { # args: [name]
   _log schedule updating
   if [ $# -gt 0 ]; then
     for f in "$@"; do
-      [[ "$f" == *.sh ]] || f="$f.sh"
-      f="$bin_dir/$f"
-      if [ ! -f "$f" ]; then
-        f="$f.off"
-        if [ ! -f "$f" ]; then
-          _log "Not found: ${f%.off}"
-          return
-        fi
-      fi
+      f=$(_get_script "$f")
+      [ -z "$f" ] && { _log "\e[31mscript not found!!"; return 1; }
 
       _update "$f"
     done
@@ -74,7 +79,7 @@ _update() {
   f="$1"
   _log "execute \e[32m$f \e[37m..."
   # refresh backup data
-  $f
+  "$f"
 
   # commit updates
   [ -n "$(git status -uno -s)" ] && {
@@ -90,19 +95,21 @@ _enable() { # arg1: script_path
     _log "enable \e[4;32m$*\e[0m"
     [ $# -gt 0 ] || { _log "\e[31ma script required!!"; return 1; }
     while [ $# -gt 0 ]; do
-        local f=$(basename $1)
+        local f=$(_get_script "$1")
+        [ -z "$f" ] && { _log "\e[31mscript not found!!"; return 1; }
 
-        _exec chmod +x "$bin_dir/$f"
-        _exec git add -f "$bin_dir/$f"
+        _exec chmod +x "$f"
+        _exec git add -f "$f"
+        f_new="$f"
         if [[ "$f" != *.sh ]]; then
-            f2="${f%.*}"
-            [[ "$f2" != *.sh ]] && { _log "\e[31mwrong script name!!"; return 1; }
+            f_new="${f%.*}"
+            [[ "$f_new" != *.sh ]] && { _log "\e[31mwrong script name!!"; return 1; }
 
-            _exec git mv "$bin_dir/$f" "$bin_dir/$f2"
+            _exec git mv "$f" "$f_new"
         fi
 
-        _exec git commit -m "[manage] enable ${f2:-$f}"
-        shift; unset f2
+        _exec git commit -m "[manage] enable '$(basename "${f_new%.*}")' schedule"
+        shift; unset f_new
     done
 } 
 
@@ -110,11 +117,11 @@ _disable() { # arg1: script_path
     _log "disable \e[4;32m$*\e[0m"
     [ $# -gt 0 ] || { _log "\e[31ma script required!!"; return 1; }
     while [ $# -gt 0 ]; do
-        local f=$(basename $1)
+        local f=$(_get_script $1)
         [[ "$f" == *.sh ]] && {
-            _exec git add -f "$bin_dir/$f"
-            _exec git mv "$_" "$bin_dir/$f.off"
-            _exec git commit -m "[manage] enable $f"
+            _exec git add -f "$f"
+            _exec git mv "$_" "$f.off"
+            _exec git commit -m "[manage] disable '$(basename "${f%.*}")' schedule"
         }
         shift
     done
@@ -124,7 +131,7 @@ _disable() { # arg1: script_path
 case $1 in
   ls|list)	_list;;
   add|new)	_new "${@:2}";;
-  update)	_updates "${@:2}";;
+  exec|run)	_updates "${@:2}";;
   enable)	_enable "${@:2}";;
   disable)	_disable "${@:2}";;
   *)		_usage; exit 1;
