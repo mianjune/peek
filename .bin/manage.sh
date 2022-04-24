@@ -1,6 +1,6 @@
 #!/bin/sh
 
-base_dir=$(cd $(dirname $(readlink "$0"))/..; pwd -P)
+base_dir=$(cd $(dirname $(readlink -f "$0"))/..; pwd -P)
 bin_dir=$base_dir/.bin/update.d
 
 cd $base_dir
