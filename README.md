@@ -19,3 +19,9 @@ bash <(wget -O- https://raw.githubusercontent.com/mianjune/peek/main/manage.sh) 
 # 3 10-23,0 * * * /path/to/peek/backup/dir/manage.sh run &>> /tmp/cron-`whoami`-backup-schedule.log &
 ```
 
+
+## Troubleshooting
+```sh
+# reset submodule module
+git submodule update --init -f .peek
+```

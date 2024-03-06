@@ -1,13 +1,15 @@
 #!/bin/bash
 
 base_dir="$(cd "$(dirname "$0")"; pwd)"
+peek_dir="$base_dir"/.peek
 task_dir="$base_dir"/peek.d
 
 
-_log()	{ printf "\e[1;33m[`date '+%F %T'`] \e[37m$*\e[0m\n"; }
+_log()	{ printf "[`date '+%F %T'`] \e[1m\e[37m$*\e[0m\n"; }
 _err()	{ _log "\e[31m$*"; }
 _exec()	{ _log "> \e[32m$*\e[0m\n"; "$@"; }
 _is()	{ printf "\e[1m# \e[33m$*\e[0;1m? (Y/n)\e[0m "; local c; read -r c; ! [[ "$c" =~ [nN] ]]; }
+_isn()	{ printf "\e[1m# \e[33m$*\e[0;1m? (y/N)\e[0m "; local c; read -r c; [[ "$c" =~ [yY] ]]; }
 _ask()	{ printf "\e[1mDo: \e[32m$*\e[0;1m? (Y/n)\e[0m "; local c; read -r c; case "$c" in [nN]) return;; esac; _exec "$@"; }
 export -f _log _err _exec # sub process
 
@@ -24,6 +26,7 @@ Commands:
 	\e[1;32menable   TASK\e[0m	enable the task
 	\e[1;32mdisable  TASK\e[0m	disable the task
 	\e[1;32minit     [PROJECT_DIR [PEEK_GIT_URL]]\e[0m	init project Peek
+	\e[1;32mupgrade		\e[0mupgrade Peek
 
 "; }
 
@@ -51,8 +54,7 @@ _new() { # args: NAME
 	local f="$(_get_script "$1")"
 	[ -z "$f" ] || {
 		_err "task existed: \e[4;34m$f"
-		printf "\e[1;33medit \e[4;34m${f##*/}\e[0;1m? y/N "; read c
-		[[ "$c" == [yY] ]] && _edit "$f"
+		_isn "edit \e[4;34m${f##*/}" && _edit "$f"
 		return
 	}
 	f="$task_dir/${1##*/}.sh"
@@ -184,14 +186,23 @@ _init() { # [PROJECT_DIR [PEEK_GIT_URL]]
 	printf 'Has installed \e[33mPeek\e[0m in \e[34m.peek/\e[0m by git-submodule\ntry it and create a task by 👉 \e[1;32m./manage.sh new\e[0m ...\n'
 }
 
+_upgrade() {
+	cd "$base_dir"
+	_exec git submodule update --remote --checkout -- .peek || return 1
+	git add .peek
+	git diff-index --quiet HEAD && { _err "nothing upgraded!!"; return 1; }
+	_ask git commit -m "manage(upgrade): Peek | $(git --git-dir=.peek/.git log -n1 --format=format:'%h %as %s')"
+}
 
-case $1 in
+
+case "$1" in
 	ls|list)	_list;;
 	add|new)	_new "${@:2}";;
 	exec|run)	_updates "${@:2}";;
 	edit)		_edit "${@:2}";;
 	enable)		_enable "${@:2}";;
 	disable)	_disable "${@:2}";;
+	upgrade)	_upgrade "${@:2}";;
 	init)		_init "${@:2}";;
 	*)			_usage; exit 1;
 esac
