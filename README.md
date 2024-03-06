@@ -1,27 +1,21 @@
 # Peek
-This's a repository template for my configure and setting files backup by Git.
+This project is a manage.sh
+for making backups my configure and setting files by Git.
 
 
 ## Get Start
 ```sh
-git clone git@github.com:mianjune/peek.git
-cd peek
+# create a new directory, open your existed backup repository
+mkdir YOUR_DIR_FOR_SAVE_BACKUP_DATA/
+cd "$_"
 
-# Optional: new branch and worktree directory for a dataset
-b=$(hostname 2>/dev/null||hostnamectl hostname)
-git worktree -b "${b}" "backup-${b}"
-cd $_
+# init Peek
+bash <(wget -O- https://raw.githubusercontent.com/mianjune/peek/main/manage.sh) init
 
-# modify or add updating scripts you need below .bin/ (`update_*.sh`, disable by rename appending `.off`)
-# execute updating scripts
-ls ./.bin/update_*.sh|xargs -l1 sh {}
-# and track files into repository
-git add -f .bin/update_*.sh ...files_for_backup
+# Add your scripts in peek.d/*.sh (disable by renamed appending `.off`)
+./manage.sh new TASK_NAME
 
-# re amend commit
-./.bin/backup_schedule.sh
-
-# update crontab, like:
-# 3 10-23,0 * * * /path_to/backup/.bin/backup.sh schedule &> /tmp/cron-`whoami`-backup-schedule.log &
+# Add crontab schedule like:
+# 3 10-23,0 * * * /path/to/peek/backup/dir/manage.sh run &>> /tmp/cron-`whoami`-backup-schedule.log &
 ```
 
