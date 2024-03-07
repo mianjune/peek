@@ -2,9 +2,10 @@
 # Python pypi modules freeze
 
 _data_dir=python
-mkdir -p $_data_dir
+mkdir -p "$_data_dir"
+
 # Python Lib
 pip3 freeze >| python/python3-requirements.txt
 
-git add -f "$_data_dir"
+git add "$_data_dir"
 

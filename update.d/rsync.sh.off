@@ -6,7 +6,7 @@ mkdir -p "$_data_dir"
 
 rsync -aPh --delete-after \
     ~/.*rc \
-    $_data_dir/
+    "$_data_dir"/
 
-git add -f "$_data_dir"
+git add "$_data_dir"
 

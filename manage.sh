@@ -10,7 +10,7 @@ _err()	{ _log "\e[31m$*"; }
 _exec()	{ _log "> \e[32m$*\e[0m\n"; "$@"; }
 _is()	{ printf "\e[1m# \e[33m$*\e[0;1m? (Y/n)\e[0m "; local c; read -r c; ! [[ "$c" =~ [nN] ]]; }
 _isn()	{ printf "\e[1m# \e[33m$*\e[0;1m? (y/N)\e[0m "; local c; read -r c; [[ "$c" =~ [yY] ]]; }
-_ask()	{ printf "\e[1mDo: \e[32m$*\e[0;1m? (Y/n)\e[0m "; local c; read -r c; case "$c" in [nN]) return;; esac; _exec "$@"; }
+_ask()	{ printf "\e[1mDo> \e[32m$*\e[0;1m? (Y/n)\e[0m "; local c; read -r c; case "$c" in [nN]) return;; esac; _exec "$@"; }
 export -f _log _err _exec # sub process
 
 _usage() { printf %b "\e[1;32m$0\e[0m version: v1.0 by Mianjune
@@ -54,7 +54,7 @@ _new() { # args: NAME
 	local f="$(_get_script "$1")"
 	[ -z "$f" ] || {
 		_err "task existed: \e[4;34m$f"
-		_isn "edit \e[4;34m${f##*/}" && _edit "$f"
+		_is "edit \e[4;34m${f##*/}" && _edit "$f"
 		return
 	}
 	f="$task_dir/${1##*/}.sh"
@@ -62,7 +62,7 @@ _new() { # args: NAME
 
 	if _edit_file "$f"; then
 		_enable "${f%.sh}"
-		printf "\e[1mfor execute it by: \e[32mrun \e[33m$(basename "$_")\n"
+		_is "Do> ./manage.sh run \e[32m$(basename "${f%.sh}")" && _update "$f"
 	else
 		rm "$f"
 	fi
@@ -77,7 +77,7 @@ _edit() { # args: NAME
 		[[ "$c" == [yY] ]] && _new "${1##*/}"
 	else
 		_log "edit \e[4;32m$f"
-		_edit_file "$f" && _exec git commit -m "manage(task): modify '$(basename "${f%.*}")'" -- "$f"
+		_edit_file "$f" && _exec git commit -m "manage(task): modify [$(basename "${f%.*}")]" -- "$f"
 	fi
 }
 
@@ -94,7 +94,7 @@ _list() {
 }
 
 _updates() { # args: [name]
-	_log schedule updating
+	_log updates
 	local f
 	if [ $# -gt 0 ]; then
 		for f in "$@"; do
@@ -113,15 +113,15 @@ _update() {
 	local f="$1"
 	_log "execute \e[32m$f \e[37m..."
 	# refresh backup data
+	cd "$base_dir"
 	"$f" || { _err "Fail to exec: \e[37m$f\e[37m!!"; return 1; }
 
+	# Check if changes
 	git diff-index --quiet HEAD && { _err "nothing changed by \e[37m$f\e[37m!!"; return 1; }
 
-	# commit updates
+	# Commit updates
 	: "${f%.off}"
-	local msg="schedule($(basename "${_%.sh}")): update by ${USER:-$(whoami)}@$(cat /etc/hostname)"
-	_log "commit: \e[32m$msg"
-	git commit -am "$msg"
+	_exec git commit -am "schedule($(basename "${_%.sh}")): update by ${USER:-$(whoami)}@$(cat /etc/hostname)"
 }
 
 _enable() { # arg1: script_path
@@ -141,7 +141,7 @@ _enable() { # arg1: script_path
 			_exec git mv "$f" "$f_new"
 		fi
 
-		_exec git commit -m "manage(task): enable '$(basename "${f_new%.*}")' schedule"
+		_exec git commit -m "manage(task): enable [$(basename "${f_new%.*}")]"
 		shift
 	done
 }
@@ -154,7 +154,7 @@ _disable() { # args: SCRIPT_PATH...
 		[[ "$f" == *.sh ]] && {
 			git add -f "$f"
 			_exec git mv "$_" "$f.off"
-			_exec git commit -m "manage(task): disable '$(basename "${f%.*}")' schedule"
+			_exec git commit -m "manage(task): disable [$(basename "${f%.*}")] task"
 		}
 	done
 }

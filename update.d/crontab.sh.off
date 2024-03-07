@@ -6,5 +6,5 @@ mkdir -p "$_data_dir"
 
 crontab -l >| "$_data_dir/${USER}.crontab"
 
-git add -f "$_data_dir"
+git add "$_data_dir"
 

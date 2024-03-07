@@ -1,7 +1,7 @@
 #!/bin/sh
 # This is a demo updater script
 
-# manage by directory, and make sure existed
+# Manage by directory, and make sure existed
 _data_dir="$(basename "${0%.sh*}")"
 mkdir -p "$_data_dir"
 
@@ -14,6 +14,6 @@ mkdir -p "$_data_dir"
 # TODO: update to >| "$_data_dir"
 
 
-# trace to Git repository
-git add -f "$_data_dir"
+# Add to Git repository
+git add "$_data_dir"
 
