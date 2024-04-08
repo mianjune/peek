@@ -10,7 +10,7 @@ mkdir -p "$_data_dir"
 #   > _log MESSAGE...
 #   execute command with logging
 #   > _exec COMMAND...
-      
+
 # TODO: update to >| "$_data_dir"
 
 
