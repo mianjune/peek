@@ -88,7 +88,7 @@ _list() {
 	local l=$(ls "$conf_dir"|grep '.sh$'|sort)
 	local f lm=$(wc -L <<<"$l")
 	while read f; do
-		printf " \e[1;32m%-${lm}s\e[39m%s\e[0m\n" "${f%.sh}" "$(sed -r '/^#!/D;/^#/{:f;n;/^#/!Q;bf};d' "$conf_dir/$f"|sed -r 's/^#\s*//;1s/^/- /'|tr '\n' \ )"
+		printf " \e[1;32m%-${lm}s\e[39m%s\e[0m\n" "${f%.sh}" "$(sed -r '/^#!/D;/^#/{:f;n;/^#/!Q;bf};d' "$conf_dir/$f" 2>/dev/null|sed -r 's/^#\s*//;1s/^/- /'|tr '\n' \ )"
 	done <<<"$l"
 }
 
@@ -169,9 +169,9 @@ _init() { # [PROJECT_DIR [PEEK_GIT_URL]]
 	_exec ln -s .peek/manage.sh || return 1
 
 	# Commit
-	git add -- peek.d/ manage.sh
-	git status -suno -- peek.d/ manage.sh
-	_ask git commit -m "feat: setup Peek($(git config submodule.peek.url))" -- peek.d/ manage.sh
+	git add -- .peek/ manage.sh .gitmodules
+	git status -suno
+	_ask git commit -m "feat: setup Peek($(git config submodule.peek.url))" -- .peek/ manage.sh .gitmodules
 
 	_exec ./manage.sh --help
 	printf 'Has installed \e[33mPeek\e[0m in \e[34m.peek/\e[0m by git-submodule\ntry it and create a task by 👉 \e[1;32m./manage.sh new\e[0m ...\n'
