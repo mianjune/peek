@@ -2,8 +2,8 @@
 # This is a demo updater script
 
 # Manage by directory, and make sure existed
-_data_dir="$(basename "${0%.sh*}")"
-mkdir -p "$_data_dir"
+DATA_DIR="$(basename "${0%.sh*}")"
+mkdir -p "$DATA_DIR"
 
 # Predefined function:
 #   logging with format
@@ -11,9 +11,9 @@ mkdir -p "$_data_dir"
 #   execute command with logging
 #   > _exec COMMAND...
 
-# TODO: update to >| "$_data_dir"
+# TODO: update to >| "$DATA_DIR"
 
 
 # Add to Git repository
-git add "$_data_dir"
+git add "$DATA_DIR"
 

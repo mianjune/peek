@@ -1,12 +1,12 @@
 #!/bin/sh
 # Sync custom directories, e.g. dotfiles
 
-_data_dir=dotfiles
-mkdir -p "$_data_dir"
+DATA_DIR=dotfiles
+mkdir -p "$DATA_DIR"
 
 rsync -aPh --delete-after \
     ~/.*rc \
-    "$_data_dir"/
+    "$DATA_DIR"/
 
-git add "$_data_dir"
+git add "$DATA_DIR"
 
