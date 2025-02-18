@@ -1,8 +1,8 @@
 #!/bin/bash
 
 base_dir=$(cd "$(dirname "$0")"; pwd)
-peek_dir="$base_dir"/.peek
-conf_dir="$base_dir"/peek.d
+peek_dir=.peek
+conf_dir=peek.d
 
 
 _log()	{ printf "\e[0m`date +%T`\e[34m \e[1m$*\e[0m\n" >&2; }
@@ -50,10 +50,12 @@ _new() { # args: NAME
 	[ -n "$1" ] || { _err "a task name required!!"; return 1; }
 	local n=$(_get_task_script_by_name "$1")
 	local i f="$conf_dir/$n.sh"
+	cd "$base_dir"
 	if [ -f "$f" ]; then
 		_is "task[\e[32m$n\e[33m] existed, do edit it" && _edit "$n"
 	else
 		local t
+		_log "choose a template"
 		select i in $(find "$conf_dir" "$peek_dir"/peek.d -type f -name '*.sh'|sort); do
 			cp -in "$i" "$f" || return 1
 			break
@@ -73,6 +75,7 @@ _edit() { # args: NAME
 	[ -n "$1" ] || { _err "a task name required!!"; return 1; }
 	local n=$(_get_task_script_by_name "$1")
 	local f="$conf_dir/$n.sh"
+	cd "$base_dir"
 	if [ -f "$f" ]; then
 		if _edit_file "$f"; then
 			git add -- "$f"
@@ -85,6 +88,7 @@ _edit() { # args: NAME
 
 # List all tasks
 _list() {
+	cd "$base_dir"
 	local l=$(ls "$conf_dir"|grep '.sh$'|sort)
 	local f lm=$(wc -L <<<"$l")
 	while read f; do
@@ -93,6 +97,7 @@ _list() {
 }
 
 _schedule() { # args: [name]
+	cd "$base_dir"
 	# Reformat variable name
 	local f="$conf_dir/schedule.conf"
 	case "$1" in
@@ -131,6 +136,7 @@ _run() {
 	[ -n "$1" ] || { _err "a task name required!!"; return 1; }
 	local n=$(_get_task_script_by_name "$1")
 	local f="$conf_dir/$n.sh"
+	cd "$base_dir"
 	if [ -f "$f" ]; then
 		_log "execute > \e[32m$n"
 		# Refresh backup data
